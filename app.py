@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from io import BytesIO
 import base64
-from fpdf import FPDF
+from pdf import PDF
 
 st.set_page_config(page_title="Cuotas de Préstamo", layout="centered")
 st.markdown("""
