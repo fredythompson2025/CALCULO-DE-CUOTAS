@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from io import BytesIO
 import base64
+from fpdf import FPDF
 
 st.set_page_config(page_title="Cuotas de Préstamo", layout="centered")
 st.markdown("""
@@ -117,10 +118,33 @@ def convertir_a_excel(df):
 def generar_link_descarga_excel(df):
     excel_data = convertir_a_excel(df)
     b64 = base64.b64encode(excel_data.read()).decode()
-    href = f'<a href="data:application/octet-stream;base64,{b64}" download="tabla_amortizacion.xlsx">📥 Descargar Excel</a>'
+    href = f'<a href="data:application/octet-stream;base64,{b64}" download="tabla_amortizacion.xlsx">📅 Descargar Excel</a>'
     return href
 
-# Panel de entrada
+def convertir_a_pdf(df):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=10)
+    col_widths = [15, 30, 30, 30, 30, 30]
+    headers = list(df.columns)
+    for i, header in enumerate(headers):
+        pdf.cell(col_widths[i], 10, header, border=1)
+    pdf.ln()
+    for _, row in df.iterrows():
+        for i, item in enumerate(row):
+            pdf.cell(col_widths[i], 10, f"{item:,.2f}" if isinstance(item, (int, float)) else str(item), border=1)
+        pdf.ln()
+    output = BytesIO()
+    pdf.output(output)
+    output.seek(0)
+    return output
+
+def generar_link_descarga_pdf(df):
+    pdf_data = convertir_a_pdf(df)
+    b64 = base64.b64encode(pdf_data.read()).decode()
+    href = f'<a href="data:application/octet-stream;base64,{b64}" download="tabla_amortizacion.pdf">📄 Descargar PDF</a>'
+    return href
+
 with st.form("formulario"):
     col1, col2 = st.columns(2)
 
@@ -138,7 +162,6 @@ with st.form("formulario"):
     st.markdown("---")
     calcular = st.form_submit_button("🔍 Calcular cuotas")
 
-# Resultado
 if calcular:
     st.subheader("📊 Resultados:")
     st.markdown(f"**Monto del préstamo:** Lps. {monto:,.2f}  \n**Tasa anual:** {tasa:.2f}%  \n**Plazo:** {plazo} meses")
@@ -155,16 +178,11 @@ if calcular:
     st.subheader("🧾 Tabla de amortización:")
     st.dataframe(df_format, use_container_width=True)
 
-    # Opciones de salida sin usar st.stop()
     st.markdown("---")
     st.markdown("### 📂 Opciones de salida")
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
 
     with col1:
         st.markdown(generar_link_descarga_excel(df_resultado), unsafe_allow_html=True)
     with col2:
-        st.button("📸 Imprimir", on_click=lambda: st.write("Use Ctrl+P para imprimir desde su navegador."))
-    with col3:
-        salir = st.button("❌ Salir")
-        if salir:
-            st.success("Aplicación cerrada. Puede cerrar la pestaña si lo desea.")
+        st.markdown(generar_link_descarga_pdf(df_resultado), unsafe_allow_html=True)
