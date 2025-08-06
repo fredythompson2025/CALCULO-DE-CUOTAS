@@ -1,9 +1,10 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
-from io import BytesIO
-import base64
-from pdf import PDF
+import io
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
 
 st.set_page_config(page_title="Cuotas de Préstamo", layout="centered")
 st.markdown("""
