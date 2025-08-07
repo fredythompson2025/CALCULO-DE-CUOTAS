@@ -186,21 +186,33 @@ if calcular:
 
     df_resultado = calcular_cuotas_df(monto, tasa, plazo, frecuencia, tipo_cuota, incluir_seguro, porcentaje_seguro)
 
-    cuota_final = df_resultado["Cuota"].iloc[0] if len(df_resultado) == 1 else df_resultado["Cuota"].iloc[0]
-    st.info(f"💵 **Cuota a pagar:** Lps. {cuota_final:,.2f}")
+    if len(df_resultado) == 1:
+        cuota_final = df_resultado["Cuota"].iloc[0]
+        st.info(f"💵 **Cuota a pagar:** Lps. {cuota_final:,.2f}")
+    else:
+        cuota_promedio = df_resultado["Cuota"].mean()
+        st.info(f"💵 **Cuota promedio a pagar:** Lps. {cuota_promedio:,.2f}")
 
+    # Formateo para mostrar
     df_format = df_resultado.copy()
     for col in ["Cuota", "Interés", "Abono", "Seguro", "Saldo"]:
-        df_format[col] = df_format[col].apply(lambda x: f"Lps. {x:,.2f}")
+        if col in df_format.columns:
+            df_format[col] = df_format[col].apply(lambda x: f"Lps. {x:,.2f}")
 
     st.subheader("🧾 Tabla de amortización:")
-    st.dataframe(df_format, use_container_width=True)
+
+    if incluir_seguro == 'No' and "Seguro" in df_format.columns:
+        st.dataframe(df_format.drop(columns=["Seguro"]), use_container_width=True)
+        df_exportar = df_resultado.drop(columns=["Seguro"])
+    else:
+        st.dataframe(df_format, use_container_width=True)
+        df_exportar = df_resultado
 
     st.markdown("---")
     st.markdown("### 📂 Opciones de salida")
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown(generar_link_descarga_excel(df_resultado), unsafe_allow_html=True)
+        st.markdown(generar_link_descarga_excel(df_exportar), unsafe_allow_html=True)
     with col2:
-        st.markdown(generar_link_descarga_pdf(df_resultado), unsafe_allow_html=True)
+        st.markdown(generar_link_descarga_pdf(df_exportar), unsafe_allow_html=True)
