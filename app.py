@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from io import BytesIO
+import base64
+from fpdf import FPDF  # Faltaba este import
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -146,6 +148,8 @@ def generar_link_descarga_pdf(df):
     href = f'<a href="data:application/octet-stream;base64,{b64}" download="tabla_amortizacion.pdf">📄 Descargar PDF</a>'
     return href
 
+# -------------------- UI en Streamlit --------------------
+
 with st.form("formulario"):
     col1, col2 = st.columns(2)
 
@@ -187,3 +191,4 @@ if calcular:
         st.markdown(generar_link_descarga_excel(df_resultado), unsafe_allow_html=True)
     with col2:
         st.markdown(generar_link_descarga_pdf(df_resultado), unsafe_allow_html=True)
+
