@@ -187,18 +187,7 @@ with st.form("formulario"):
     col1, col2 = st.columns(2)
 
     with col1:
-        monto_input = st.text_input("💰 Monto del préstamo", value="10,000.00")
-
-        try:
-            monto = float(monto_input.replace(",", "").strip())
-            monto_formateado = f"{monto:,.2f}"
-        except ValueError:
-            st.error("❌ Ingrese un monto válido.")
-            st.stop()
-
-        if monto_input != monto_formateado:
-            st.experimental_rerun()
-
+        monto = st.number_input("💰 Monto del préstamo", min_value=0.0, value=10000.00, step=100.0, format="%.2f")
         tasa = st.number_input("📈 Tasa de interés anual (%)", value=12.0, step=0.1)
         plazo = st.number_input("🗕 Plazo (meses)", value=36, step=1)
 
@@ -248,3 +237,4 @@ if calcular:
         st.markdown(generar_link_descarga_excel(df_exportar), unsafe_allow_html=True)
     with col2:
         st.markdown(generar_link_descarga_pdf(df_exportar), unsafe_allow_html=True)
+
