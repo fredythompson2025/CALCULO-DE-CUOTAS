@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 import base64
-from fpdf import FPDF  # Faltaba este import
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -125,30 +124,44 @@ def generar_link_descarga_excel(df):
     return href
 
 def convertir_a_pdf(df):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=10)
-    col_widths = [15, 30, 30, 30, 30, 30]
-    headers = list(df.columns)
-    for i, header in enumerate(headers):
-        pdf.cell(col_widths[i], 10, header, border=1)
-    pdf.ln()
-    for _, row in df.iterrows():
-        for i, item in enumerate(row):
-            pdf.cell(col_widths[i], 10, f"{item:,.2f}" if isinstance(item, (int, float)) else str(item), border=1)
-        pdf.ln()
     output = BytesIO()
-    pdf.output(output)
+    doc = SimpleDocTemplate(output, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("Tabla de Amortización", styles['Heading1']))
+    elements.append(Spacer(1, 12))
+
+    data = [list(df.columns)] + df.values.tolist()
+
+    for i in range(1, len(data)):
+        data[i] = [
+            f"{x:,.2f}" if isinstance(x, (int, float)) else str(x)
+            for x in data[i]
+        ]
+
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#003366")),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
     output.seek(0)
     return output
 
 def generar_link_descarga_pdf(df):
     pdf_data = convertir_a_pdf(df)
     b64 = base64.b64encode(pdf_data.read()).decode()
-    href = f'<a href="data:application/octet-stream;base64,{b64}" download="tabla_amortizacion.pdf">📄 Descargar PDF</a>'
+    href = f'<a href="data:application/pdf;base64,{b64}" download="tabla_amortizacion.pdf">📄 Descargar PDF</a>'
     return href
 
-# -------------------- UI en Streamlit --------------------
+# -------------------- UI --------------------
 
 with st.form("formulario"):
     col1, col2 = st.columns(2)
@@ -191,4 +204,3 @@ if calcular:
         st.markdown(generar_link_descarga_excel(df_resultado), unsafe_allow_html=True)
     with col2:
         st.markdown(generar_link_descarga_pdf(df_resultado), unsafe_allow_html=True)
-
