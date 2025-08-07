@@ -197,7 +197,7 @@ with st.form("formulario"):
             ['Diario', 'Semanal', 'Quincenal', 'Mensual', 'Bimensual', 'Trimestral', 'Cuatrimestral', 'Semestral', 'Anual', 'Al vencimiento']
         )
         tipo_cuota = st.selectbox("🔁 Tipo de cuota", ['Nivelada', 'Saldos Insolutos'])
-        incluir_seguro = st.selectbox("🛡 ¿Incluir seguro?", ['No', 'Sí'])
+        incluir_seguro = st.selectbox("#45 ¿Incluir seguro Prestamo", ['No', 'Sí'])
         porcentaje_seguro = st.number_input("📌 % Seguro por cada Lps. 1,000", value=0.50, step=0.01)
 
     st.markdown("---")
