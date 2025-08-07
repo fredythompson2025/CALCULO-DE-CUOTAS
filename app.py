@@ -6,11 +6,9 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
-import locale
-
-locale.setlocale(locale.LC_ALL, '')
 
 st.set_page_config(page_title="Cuotas de Préstamo", layout="centered")
+
 st.markdown("""
     <div style='text-align: center;'>
         <img src='https://cdn-icons-png.flaticon.com/512/2910/2910768.png' width='80'/>
@@ -19,19 +17,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.markdown("##")
 
-
 def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, incluir_seguro, porcentaje_seguro):
     freq_dict = {
-        'Diario': 360,
-        'Semanal': 52,
-        'Quincenal': 24,
-        'Mensual': 12,
-        'Bimensual': 6,
-        'Trimestral': 4,
-        'Cuatrimestral': 3,
-        'Semestral': 2,
-        'Anual': 1,
-        'Al vencimiento': 0
+        'Diario': 360, 'Semanal': 52, 'Quincenal': 24, 'Mensual': 12,
+        'Bimensual': 6, 'Trimestral': 4, 'Cuatrimestral': 3,
+        'Semestral': 2, 'Anual': 1, 'Al vencimiento': 0
     }
 
     pagos_por_año = freq_dict[frecuencia]
@@ -42,12 +32,8 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
         seguro = 0
         cuota_total = interes + abono
         return pd.DataFrame([{
-            "Pago": 1,
-            "Cuota": cuota_total,
-            "Interés": interes,
-            "Abono": abono,
-            "Seguro": seguro,
-            "Saldo": 0
+            "Pago": 1, "Cuota": cuota_total, "Interés": interes,
+            "Abono": abono, "Seguro": seguro, "Saldo": 0
         }])
 
     n_pagos = int(plazo_meses * pagos_por_año / 12)
@@ -55,15 +41,9 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
     saldo = monto
 
     ref_cuota_dict = {
-        'Diario': 360,
-        'Semanal': 52,
-        'Quincenal': 24,
-        'Mensual': 12,
-        'Bimensual': 6,
-        'Trimestral': 4,
-        'Cuatrimestral': 3,
-        'Semestral': 2,
-        'Anual': 1
+        'Diario': 360, 'Semanal': 52, 'Quincenal': 24, 'Mensual': 12,
+        'Bimensual': 6, 'Trimestral': 4, 'Cuatrimestral': 3,
+        'Semestral': 2, 'Anual': 1
     }
     ref_cuota = min(ref_cuota_dict.get(frecuencia, 1), n_pagos)
     saldo_referencia = monto
@@ -97,14 +77,9 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
             saldo = max(saldo, 0)
             seguro_aplicado = seguro_unitario if incluir_seguro == 'Sí' and i <= cuotas_con_seguro else 0
             cuota_total = cuota_base + seguro_aplicado
-
             datos.append({
-                "Pago": i,
-                "Cuota": cuota_total,
-                "Interés": interes,
-                "Abono": abono,
-                "Seguro": seguro_aplicado,
-                "Saldo": saldo
+                "Pago": i, "Cuota": cuota_total, "Interés": interes,
+                "Abono": abono, "Seguro": seguro_aplicado, "Saldo": saldo
             })
     else:
         abono_fijo = monto / n_pagos
@@ -115,19 +90,13 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
             saldo = max(saldo, 0)
             seguro_aplicado = seguro_unitario if incluir_seguro == 'Sí' and i <= cuotas_con_seguro else 0
             cuota_total = cuota_base + seguro_aplicado
-
             datos.append({
-                "Pago": i,
-                "Cuota": cuota_total,
-                "Interés": interes,
-                "Abono": abono_fijo,
-                "Seguro": seguro_aplicado,
-                "Saldo": saldo
+                "Pago": i, "Cuota": cuota_total, "Interés": interes,
+                "Abono": abono_fijo, "Seguro": seguro_aplicado, "Saldo": saldo
             })
 
     df = pd.DataFrame(datos)
     return df
-
 
 def convertir_a_excel(df):
     output = BytesIO()
@@ -136,30 +105,20 @@ def convertir_a_excel(df):
     output.seek(0)
     return output
 
-
 def generar_link_descarga_excel(df):
     excel_data = convertir_a_excel(df)
     b64 = base64.b64encode(excel_data.read()).decode()
-    href = f'<a href="data:application/octet-stream;base64,{b64}" download="tabla_amortizacion.xlsx">📅 Descargar Excel</a>'
-    return href
-
+    return f'<a href="data:application/octet-stream;base64,{b64}" download="tabla_amortizacion.xlsx">📅 Descargar Excel</a>'
 
 def convertir_a_pdf(df):
     output = BytesIO()
     doc = SimpleDocTemplate(output, pagesize=letter)
     styles = getSampleStyleSheet()
-    elements = []
-
-    elements.append(Paragraph("Tabla de Amortización", styles['Heading1']))
-    elements.append(Spacer(1, 12))
-
+    elements = [Paragraph("Tabla de Amortización", styles['Heading1']), Spacer(1, 12)]
     data = [list(df.columns)] + df.values.tolist()
 
     for i in range(1, len(data)):
-        data[i] = [
-            f"{x:,.2f}" if isinstance(x, (int, float)) else str(x)
-            for x in data[i]
-        ]
+        data[i] = [f"{x:,.2f}" if isinstance(x, (int, float)) else str(x) for x in data[i]]
 
     table = Table(data)
     table.setStyle(TableStyle([
@@ -170,29 +129,28 @@ def convertir_a_pdf(df):
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTSIZE', (0, 0), (-1, -1), 8),
     ]))
-
     elements.append(table)
     doc.build(elements)
     output.seek(0)
     return output
 
-
 def generar_link_descarga_pdf(df):
     pdf_data = convertir_a_pdf(df)
     b64 = base64.b64encode(pdf_data.read()).decode()
-    href = f'<a href="data:application/pdf;base64,{b64}" download="tabla_amortizacion.pdf">📄 Descargar PDF</a>'
-    return href
-
+    return f'<a href="data:application/pdf;base64,{b64}" download="tabla_amortizacion.pdf">📄 Descargar PDF</a>'
 
 # -------------------- UI --------------------
-
 with st.form("formulario"):
     col1, col2 = st.columns(2)
 
     with col1:
-        monto_str = st.text_input("💰 Monto del préstamo", value=f"{10000:,.2f}")
+        # Campo corregido con formateo al reenviar
+        default_monto = st.session_state.get("monto_str", "10,000.00")
+        monto_str = st.text_input("💰 Monto del préstamo", value=default_monto)
+
         try:
             monto = float(monto_str.replace(",", "").replace("Lps.", "").strip())
+            st.session_state["monto_str"] = f"{monto:,.2f}"  # Guarda con formato
         except ValueError:
             st.error("❌ Ingrese un monto válido.")
             st.stop()
@@ -203,7 +161,8 @@ with st.form("formulario"):
     with col2:
         frecuencia = st.selectbox(
             "🗖 Frecuencia de pago",
-            ['Diario', 'Semanal', 'Quincenal', 'Mensual', 'Bimensual', 'Trimestral', 'Cuatrimestral', 'Semestral', 'Anual', 'Al vencimiento']
+            ['Diario', 'Semanal', 'Quincenal', 'Mensual', 'Bimensual',
+             'Trimestral', 'Cuatrimestral', 'Semestral', 'Anual', 'Al vencimiento']
         )
         tipo_cuota = st.selectbox("🔁 Tipo de cuota", ['Nivelada', 'Saldos Insolutos'])
         incluir_seguro = st.selectbox(" ¿Incluir seguro Prestamo", ['No', 'Sí'])
@@ -241,10 +200,7 @@ if calcular:
     st.markdown("---")
     st.markdown("### 📂 DESCARGA, creado por Fredy Thompson")
     col1, col2 = st.columns(2)
-
     with col1:
         st.markdown(generar_link_descarga_excel(df_exportar), unsafe_allow_html=True)
     with col2:
         st.markdown(generar_link_descarga_pdf(df_exportar), unsafe_allow_html=True)
-
-
