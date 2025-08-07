@@ -167,7 +167,13 @@ with st.form("formulario"):
     col1, col2 = st.columns(2)
 
     with col1:
-        monto = st.number_input("💰 Monto del préstamo", value=10000.0, step=100.0, format="%.2f")
+        monto_texto = st.text_input("💰 Monto del préstamo", value="10,000.00")
+        try:
+            monto = float(monto_texto.replace(",", ""))
+        except ValueError:
+            st.error("❌ Ingrese un monto válido.")
+            st.stop()
+
         tasa = st.number_input("📈 Tasa de interés anual (%)", value=12.0, step=0.1)
         plazo = st.number_input("🗕 Plazo (meses)", value=36, step=1)
 
@@ -193,14 +199,12 @@ if calcular:
         cuota_promedio = df_resultado["Cuota"].mean()
         st.info(f"💵 **Cuota promedio a pagar:** Lps. {cuota_promedio:,.2f}")
 
-    # Formateo para mostrar
     df_format = df_resultado.copy()
     for col in ["Cuota", "Interés", "Abono", "Seguro", "Saldo"]:
         if col in df_format.columns:
             df_format[col] = df_format[col].apply(lambda x: f"Lps. {x:,.2f}")
 
     st.subheader("🧾 Tabla de amortización:")
-
     if incluir_seguro == 'No' and "Seguro" in df_format.columns:
         st.dataframe(df_format.drop(columns=["Seguro"]), use_container_width=True)
         df_exportar = df_resultado.drop(columns=["Seguro"])
