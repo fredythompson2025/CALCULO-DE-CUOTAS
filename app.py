@@ -214,7 +214,7 @@ if calcular:
         st.info(f"💵 **Cuota a pagar:** Lps. {cuota_final:,.2f}")
     else:
         cuota_promedio = df_resultado["Cuota"].mean()
-        st.info(f"💵 **Cuota promedio a pagar:** Lps. {cuota_promedio:,.2f}")
+        st.info(f"💵 **Cuota Total a pagar:** Lps. {cuota_promedio:,.2f}")
 
     df_format = df_resultado.copy()
     for col in ["Cuota", "Interés", "Abono", "Seguro", "Saldo"]:
@@ -230,7 +230,7 @@ if calcular:
         df_exportar = df_resultado
 
     st.markdown("---")
-    st.markdown("### 📂 Opciones de salida")
+    st.markdown("### 📂 DESCARGA, creado por Fredy Thompson")
     col1, col2 = st.columns(2)
 
     with col1:
