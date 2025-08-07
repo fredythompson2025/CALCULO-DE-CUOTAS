@@ -6,6 +6,9 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
+import locale
+
+locale.setlocale(locale.LC_ALL, '')
 
 st.set_page_config(page_title="Cuotas de Préstamo", layout="centered")
 st.markdown("""
@@ -187,7 +190,13 @@ with st.form("formulario"):
     col1, col2 = st.columns(2)
 
     with col1:
-        monto = st.number_input("💰 Monto del préstamo", min_value=0.0, value=10000.00, step=100.0, format="%.2f")
+        monto_str = st.text_input("💰 Monto del préstamo", value=f"{10000:,.2f}")
+        try:
+            monto = float(monto_str.replace(",", "").replace("Lps.", "").strip())
+        except ValueError:
+            st.error("❌ Ingrese un monto válido.")
+            st.stop()
+
         tasa = st.number_input("📈 Tasa de interés anual (%)", value=12.0, step=0.1)
         plazo = st.number_input("🗕 Plazo (meses)", value=36, step=1)
 
@@ -237,4 +246,5 @@ if calcular:
         st.markdown(generar_link_descarga_excel(df_exportar), unsafe_allow_html=True)
     with col2:
         st.markdown(generar_link_descarga_pdf(df_exportar), unsafe_allow_html=True)
+
 
