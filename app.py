@@ -16,11 +16,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.markdown("##")
 
+
 def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, incluir_seguro, porcentaje_seguro):
     freq_dict = {
+        'Diario': 360,
+        'Semanal': 52,
+        'Quincenal': 24,
         'Mensual': 12,
         'Bimensual': 6,
         'Trimestral': 4,
+        'Cuatrimestral': 3,
         'Semestral': 2,
         'Anual': 1,
         'Al vencimiento': 0
@@ -46,7 +51,17 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
     tasa_periodo = tasa_anual / 100 / pagos_por_año
     saldo = monto
 
-    ref_cuota_dict = {'Mensual': 12, 'Bimensual': 6, 'Trimestral': 4, 'Semestral': 2, 'Anual': 1}
+    ref_cuota_dict = {
+        'Diario': 360,
+        'Semanal': 52,
+        'Quincenal': 24,
+        'Mensual': 12,
+        'Bimensual': 6,
+        'Trimestral': 4,
+        'Cuatrimestral': 3,
+        'Semestral': 2,
+        'Anual': 1
+    }
     ref_cuota = min(ref_cuota_dict.get(frecuencia, 1), n_pagos)
     saldo_referencia = monto
 
@@ -110,6 +125,7 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
     df = pd.DataFrame(datos)
     return df
 
+
 def convertir_a_excel(df):
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -117,11 +133,13 @@ def convertir_a_excel(df):
     output.seek(0)
     return output
 
+
 def generar_link_descarga_excel(df):
     excel_data = convertir_a_excel(df)
     b64 = base64.b64encode(excel_data.read()).decode()
     href = f'<a href="data:application/octet-stream;base64,{b64}" download="tabla_amortizacion.xlsx">📅 Descargar Excel</a>'
     return href
+
 
 def convertir_a_pdf(df):
     output = BytesIO()
@@ -155,11 +173,13 @@ def convertir_a_pdf(df):
     output.seek(0)
     return output
 
+
 def generar_link_descarga_pdf(df):
     pdf_data = convertir_a_pdf(df)
     b64 = base64.b64encode(pdf_data.read()).decode()
     href = f'<a href="data:application/pdf;base64,{b64}" download="tabla_amortizacion.pdf">📄 Descargar PDF</a>'
     return href
+
 
 # -------------------- UI --------------------
 
@@ -167,18 +187,26 @@ with st.form("formulario"):
     col1, col2 = st.columns(2)
 
     with col1:
-        monto_texto = st.text_input("💰 Monto del préstamo", value="10,000.00")
+        monto_input = st.text_input("💰 Monto del préstamo", value="10,000.00")
+
         try:
-            monto = float(monto_texto.replace(",", ""))
+            monto = float(monto_input.replace(",", "").strip())
+            monto_formateado = f"{monto:,.2f}"
         except ValueError:
             st.error("❌ Ingrese un monto válido.")
             st.stop()
+
+        if monto_input != monto_formateado:
+            st.experimental_rerun()
 
         tasa = st.number_input("📈 Tasa de interés anual (%)", value=12.0, step=0.1)
         plazo = st.number_input("🗕 Plazo (meses)", value=36, step=1)
 
     with col2:
-        frecuencia = st.selectbox("🗖 Frecuencia de pago", ['Mensual', 'Bimensual', 'Trimestral', 'Semestral', 'Anual', 'Al vencimiento'])
+        frecuencia = st.selectbox(
+            "🗖 Frecuencia de pago",
+            ['Diario', 'Semanal', 'Quincenal', 'Mensual', 'Bimensual', 'Trimestral', 'Cuatrimestral', 'Semestral', 'Anual', 'Al vencimiento']
+        )
         tipo_cuota = st.selectbox("🔁 Tipo de cuota", ['Nivelada', 'Saldos Insolutos'])
         incluir_seguro = st.selectbox("🛡 ¿Incluir seguro?", ['No', 'Sí'])
         porcentaje_seguro = st.number_input("📌 % Seguro por cada Lps. 1,000", value=0.50, step=0.01)
