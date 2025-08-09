@@ -185,13 +185,13 @@ if calcular:
         cuota_promedio = df_resultado["Cuota"].mean()
         st.info(f"💵 **Cuota Total a pagar:** Lps. {cuota_promedio:,.2f}")
 
-    df_format = df_resultado.copy()
-    for col in ["Cuota", "Interés", "Abono", "Seguro", "Saldo"]:
-        if col in df_format.columns:
-            df_format[col] = df_format[col].apply(lambda x: f"Lps. {x:,.2f}")
-
-    st.subheader("🧾 Tabla de amortización:")
     if mostrar_tabla:
+        df_format = df_resultado.copy()
+        for col in ["Cuota", "Interés", "Abono", "Seguro", "Saldo"]:
+            if col in df_format.columns:
+                df_format[col] = df_format[col].apply(lambda x: f"Lps. {x:,.2f}")
+
+        st.subheader("🧾 Tabla de amortización:")
         if incluir_seguro == 'No' and "Seguro" in df_format.columns:
             st.dataframe(df_format.drop(columns=["Seguro"]), use_container_width=True)
             df_exportar = df_resultado.drop(columns=["Seguro"])
