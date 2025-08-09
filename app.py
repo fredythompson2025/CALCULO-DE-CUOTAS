@@ -100,8 +100,17 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
 
 def convertir_a_excel(df):
     output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+
+    # Detectar motor disponible
+    try:
+        import xlsxwriter
+        engine = 'xlsxwriter'
+    except ImportError:
+        engine = 'openpyxl'
+
+    with pd.ExcelWriter(output, engine=engine) as writer:
         df.to_excel(writer, index=False, sheet_name='Amortización')
+
     output.seek(0)
     return output
 
@@ -164,10 +173,8 @@ with st.form("formulario"):
              'Trimestral', 'Cuatrimestral', 'Semestral', 'Anual', 'Al vencimiento']
         )
         tipo_cuota = st.selectbox("🔁 Tipo de cuota", ['Nivelada', 'Saldos Insolutos'])
-        incluir_seguro = st.selectbox("¿Incluir seguro Prestamo?", ['No', 'Sí'])
+        incluir_seguro = st.selectbox(" ¿Incluir seguro Prestamo", ['No', 'Sí'])
         porcentaje_seguro = st.number_input("📌 % Seguro por cada Lps. 1,000", value=0.50, step=0.01)
-
-    mostrar_tabla = st.checkbox("Mostrar tabla de amortización", value=True)
 
     st.markdown("---")
     calcular = st.form_submit_button("🔍 Calcular cuotas")
@@ -185,24 +192,24 @@ if calcular:
         cuota_promedio = df_resultado["Cuota"].mean()
         st.info(f"💵 **Cuota Total a pagar:** Lps. {cuota_promedio:,.2f}")
 
-    if mostrar_tabla:
-        df_format = df_resultado.copy()
-        for col in ["Cuota", "Interés", "Abono", "Seguro", "Saldo"]:
-            if col in df_format.columns:
-                df_format[col] = df_format[col].apply(lambda x: f"Lps. {x:,.2f}")
+    df_format = df_resultado.copy()
+    for col in ["Cuota", "Interés", "Abono", "Seguro", "Saldo"]:
+        if col in df_format.columns:
+            df_format[col] = df_format[col].apply(lambda x: f"Lps. {x:,.2f}")
 
-        st.subheader("🧾 Tabla de amortización:")
-        if incluir_seguro == 'No' and "Seguro" in df_format.columns:
-            st.dataframe(df_format.drop(columns=["Seguro"]), use_container_width=True)
-            df_exportar = df_resultado.drop(columns=["Seguro"])
-        else:
-            st.dataframe(df_format, use_container_width=True)
-            df_exportar = df_resultado
+    st.subheader("🧾 Tabla de amortización:")
+    if incluir_seguro == 'No' and "Seguro" in df_format.columns:
+        st.dataframe(df_format.drop(columns=["Seguro"]), use_container_width=True)
+        df_exportar = df_resultado.drop(columns=["Seguro"])
+    else:
+        st.dataframe(df_format, use_container_width=True)
+        df_exportar = df_resultado
 
-        st.markdown("---")
-        st.markdown("### 📂 DESCARGA, creado por Fredy Thompson")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown(generar_link_descarga_excel(df_exportar), unsafe_allow_html=True)
-        with col2:
-            st.markdown(generar_link_descarga_pdf(df_exportar), unsafe_allow_html=True)
+    st.markdown("---")
+    st.markdown("### 📂 DESCARGA, creado por Fredy Thompson")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(generar_link_descarga_excel(df_exportar), unsafe_allow_html=True)
+    with col2:
+        st.markdown(generar_link_descarga_pdf(df_exportar), unsafe_allow_html=True)
+
