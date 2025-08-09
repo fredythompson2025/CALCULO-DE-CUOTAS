@@ -100,8 +100,17 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
 
 def convertir_a_excel(df):
     output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+
+    # Detectar motor disponible
+    try:
+        import xlsxwriter
+        engine = 'xlsxwriter'
+    except ImportError:
+        engine = 'openpyxl'
+
+    with pd.ExcelWriter(output, engine=engine) as writer:
         df.to_excel(writer, index=False, sheet_name='Amortización')
+
     output.seek(0)
     return output
 
@@ -144,13 +153,12 @@ with st.form("formulario"):
     col1, col2 = st.columns(2)
 
     with col1:
-        # Campo corregido con formateo al reenviar
         default_monto = st.session_state.get("monto_str", "10,000.00")
         monto_str = st.text_input("💰 Monto del préstamo", value=default_monto)
 
         try:
             monto = float(monto_str.replace(",", "").replace("Lps.", "").strip())
-            st.session_state["monto_str"] = f"{monto:,.2f}"  # Guarda con formato
+            st.session_state["monto_str"] = f"{monto:,.2f}"
         except ValueError:
             st.error("❌ Ingrese un monto válido.")
             st.stop()
