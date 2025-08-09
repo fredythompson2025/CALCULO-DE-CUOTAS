@@ -173,8 +173,10 @@ with st.form("formulario"):
              'Trimestral', 'Cuatrimestral', 'Semestral', 'Anual', 'Al vencimiento']
         )
         tipo_cuota = st.selectbox("🔁 Tipo de cuota", ['Nivelada', 'Saldos Insolutos'])
-        incluir_seguro = st.selectbox(" ¿Incluir seguro Prestamo", ['No', 'Sí'])
+        incluir_seguro = st.selectbox("¿Incluir seguro Prestamo?", ['No', 'Sí'])
         porcentaje_seguro = st.number_input("📌 % Seguro por cada Lps. 1,000", value=0.50, step=0.01)
+
+    mostrar_tabla = st.checkbox("Mostrar tabla de amortización", value=True)
 
     st.markdown("---")
     calcular = st.form_submit_button("🔍 Calcular cuotas")
@@ -198,18 +200,20 @@ if calcular:
             df_format[col] = df_format[col].apply(lambda x: f"Lps. {x:,.2f}")
 
     st.subheader("🧾 Tabla de amortización:")
-    if incluir_seguro == 'No' and "Seguro" in df_format.columns:
-        st.dataframe(df_format.drop(columns=["Seguro"]), use_container_width=True)
-        df_exportar = df_resultado.drop(columns=["Seguro"])
+    if mostrar_tabla:
+        if incluir_seguro == 'No' and "Seguro" in df_format.columns:
+            st.dataframe(df_format.drop(columns=["Seguro"]), use_container_width=True)
+            df_exportar = df_resultado.drop(columns=["Seguro"])
+        else:
+            st.dataframe(df_format, use_container_width=True)
+            df_exportar = df_resultado
+
+        st.markdown("---")
+        st.markdown("### 📂 DESCARGA, creado por Fredy Thompson")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(generar_link_descarga_excel(df_exportar), unsafe_allow_html=True)
+        with col2:
+            st.markdown(generar_link_descarga_pdf(df_exportar), unsafe_allow_html=True)
     else:
-        st.dataframe(df_format, use_container_width=True)
-        df_exportar = df_resultado
-
-    st.markdown("---")
-    st.markdown("### 📂 DESCARGA, creado por Fredy Thompson")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(generar_link_descarga_excel(df_exportar), unsafe_allow_html=True)
-    with col2:
-        st.markdown(generar_link_descarga_pdf(df_exportar), unsafe_allow_html=True)
-
+        st.info("📋 Tabla de amortización oculta.")
