@@ -123,7 +123,48 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, incluir_seguro, porcentaje_seguro):
+def calcular_seguro_danos(monto_asegurar):
+    """
+    Calculate damage insurance based on the provided formula.
+    
+    Args:
+        monto_asegurar: Amount to insure
+        
+    Returns:
+        Dictionary with insurance breakdown and monthly payment
+    """
+    if monto_asegurar <= 0:
+        return {
+            'tasa': 0,
+            'seguro_base': 0,
+            'impuesto': 0,
+            'bomberos': 0,
+            'papeleria': 0,
+            'total_anual': 0,
+            'pago_mensual': 0
+        }
+    
+    # Fórmula basada en la imagen
+    tasa = 3.5  # 3.5%
+    seguro_base = monto_asegurar * (tasa / 100)
+    impuesto = seguro_base * 0.15  # 15% impuesto
+    bomberos = seguro_base * 0.05  # 5% bomberos
+    papeleria = 50.00  # Fijo
+    
+    total_anual = seguro_base + impuesto + bomberos + papeleria
+    pago_mensual = total_anual / 12
+    
+    return {
+        'tasa': tasa,
+        'seguro_base': seguro_base,
+        'impuesto': impuesto,
+        'bomberos': bomberos,
+        'papeleria': papeleria,
+        'total_anual': total_anual,
+        'pago_mensual': pago_mensual
+    }
+
+def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, incluir_seguro, porcentaje_seguro, incluir_seguro_danos, monto_asegurar):
     """
     Calculate loan amortization schedule with different payment frequencies and types.
     
@@ -155,9 +196,10 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
         abono = monto
         seguro = 0
         cuota_total = interes + abono
+        seguro_danos = seguro_danos_info['pago_mensual'] if incluir_seguro_danos == 'Sí' else 0
         return pd.DataFrame([{
-            "Pago": 1, "Cuota": cuota_total, "Interés": interes,
-            "Abono": abono, "Seguro": seguro, "Saldo": 0
+            "Pago": 1, "Cuota": cuota_total + seguro_danos, "Interés": interes,
+            "Abono": abono, "Seguro": seguro, "Seguro Daños": seguro_danos, "Saldo": 0
         }])
 
     # Calculate number of payments and interest rate per period
@@ -196,6 +238,24 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
         divisor = freq_dict[frecuencia]
         seguro_unitario = (saldo_referencia / 1000) * porcentaje_seguro * 12 / divisor
 
+    # Calculate damage insurance
+    seguro_danos_info = calcular_seguro_danos(monto_asegurar if incluir_seguro_danos == 'Sí' else 0)
+    seguro_danos_por_pago = 0
+    if incluir_seguro_danos == 'Sí':
+        # Convert monthly payment to payment frequency
+        if frecuencia == 'Mensual':
+            seguro_danos_por_pago = seguro_danos_info['pago_mensual']
+        elif frecuencia == 'Quincenal':
+            seguro_danos_por_pago = seguro_danos_info['pago_mensual'] / 2
+        elif frecuencia == 'Semanal':
+            seguro_danos_por_pago = seguro_danos_info['pago_mensual'] / 4.33
+        elif frecuencia == 'Diario':
+            seguro_danos_por_pago = seguro_danos_info['pago_mensual'] / 30
+        else:
+            # For other frequencies, calculate proportionally
+            pagos_mensuales = freq_dict[frecuencia] / 12 if freq_dict[frecuencia] > 0 else 0
+            seguro_danos_por_pago = seguro_danos_info['pago_mensual'] / pagos_mensuales if pagos_mensuales > 0 else 0
+
     # Calculate number of payments that include insurance
     cuotas_con_seguro = n_pagos - pagos_por_año
     saldo = monto
@@ -212,11 +272,12 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
             
             # Apply insurance for specified number of payments
             seguro_aplicado = seguro_unitario if incluir_seguro == 'Sí' and i <= cuotas_con_seguro else 0
-            cuota_total = cuota_base + seguro_aplicado
+            seguro_danos_aplicado = seguro_danos_por_pago if incluir_seguro_danos == 'Sí' else 0
+            cuota_total = cuota_base + seguro_aplicado + seguro_danos_aplicado
             
             datos.append({
                 "Pago": i, "Cuota": cuota_total, "Interés": interes,
-                "Abono": abono, "Seguro": seguro_aplicado, "Saldo": saldo
+                "Abono": abono, "Seguro": seguro_aplicado, "Seguro Daños": seguro_danos_aplicado, "Saldo": saldo
             })
     else:
         # Declining balance - fixed principal, varying interest
@@ -229,11 +290,12 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
             
             # Apply insurance for specified number of payments
             seguro_aplicado = seguro_unitario if incluir_seguro == 'Sí' and i <= cuotas_con_seguro else 0
-            cuota_total = cuota_base + seguro_aplicado
+            seguro_danos_aplicado = seguro_danos_por_pago if incluir_seguro_danos == 'Sí' else 0
+            cuota_total = cuota_base + seguro_aplicado + seguro_danos_aplicado
             
             datos.append({
                 "Pago": i, "Cuota": cuota_total, "Interés": interes,
-                "Abono": abono_fijo, "Seguro": seguro_aplicado, "Saldo": saldo
+                "Abono": abono_fijo, "Seguro": seguro_aplicado, "Seguro Daños": seguro_danos_aplicado, "Saldo": saldo
             })
 
     df = pd.DataFrame(datos)
@@ -384,6 +446,13 @@ with st.form("formulario"):
             porcentaje_seguro = st.number_input("📌 % Seguro por cada L. 1,000", value=0.50, step=0.01, format="%.2f")
         else:
             porcentaje_seguro = 0.0
+            
+        # Seguro de daños
+        incluir_seguro_danos = st.selectbox("🏠 ¿Incluir seguro de daños?", ['No', 'Sí'])
+        if incluir_seguro_danos == 'Sí':
+            monto_asegurar = st.number_input("💼 Monto a asegurar (Lempiras)", value=350000.00, step=1000.0, format="%.2f")
+        else:
+            monto_asegurar = 0.0
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("---")
@@ -401,7 +470,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 # Process calculation when form is submitted
 if calcular:
     # Calculate amortization schedule
-    df_resultado = calcular_cuotas_df(monto, tasa, plazo, frecuencia, tipo_cuota, incluir_seguro, porcentaje_seguro)
+    df_resultado = calcular_cuotas_df(monto, tasa, plazo, frecuencia, tipo_cuota, incluir_seguro, porcentaje_seguro, incluir_seguro_danos, monto_asegurar)
     
     # Enhanced results section
     st.markdown("## 🎯 Resultados del Cálculo")
@@ -419,9 +488,33 @@ if calcular:
                 <div><strong>📆 Frecuencia:</strong> {frecuencia}</div>
                 <div><strong>🔁 Tipo:</strong> {tipo_cuota}</div>
                 <div><strong>🛡️ Seguro:</strong> {incluir_seguro}</div>
+                <div><strong>🏠 Seguro Daños:</strong> {incluir_seguro_danos}</div>
             </div>
         </div>
     """, unsafe_allow_html=True)
+    
+    # Show damage insurance breakdown if enabled
+    if incluir_seguro_danos == 'Sí':
+        seguro_danos_info = calcular_seguro_danos(monto_asegurar)
+        st.markdown(f"""
+            <div class='loan-info' style='border-left: 4px solid #38ef7d;'>
+                <h4>🏠 Desglose del Seguro de Daños</h4>
+                <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;'>
+                    <div><strong>Monto Asegurado:</strong> L. {monto_asegurar:,.2f}</div>
+                    <div><strong>Tasa:</strong> {seguro_danos_info['tasa']:.1f}%</div>
+                    <div><strong>Seguro Base:</strong> L. {seguro_danos_info['seguro_base']:,.2f}</div>
+                    <div><strong>Impuesto (15%):</strong> L. {seguro_danos_info['impuesto']:,.2f}</div>
+                    <div><strong>Bomberos (5%):</strong> L. {seguro_danos_info['bomberos']:,.2f}</div>
+                    <div><strong>Papelería:</strong> L. {seguro_danos_info['papeleria']:,.2f}</div>
+                </div>
+                <div style='margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #ddd;'>
+                    <div style='display: flex; justify-content: space-between; font-size: 1.1rem;'>
+                        <div><strong>Total Anual:</strong> L. {seguro_danos_info['total_anual']:,.2f}</div>
+                        <div><strong>Pago Mensual:</strong> L. {seguro_danos_info['pago_mensual']:,.2f}</div>
+                    </div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
     # Display payment information in attractive box
     if len(df_resultado) == 1:
@@ -472,7 +565,7 @@ if calcular:
 
     # Format DataFrame for display
     df_format = df_resultado.copy()
-    for col in ["Cuota", "Interés", "Abono", "Seguro", "Saldo"]:
+    for col in ["Cuota", "Interés", "Abono", "Seguro", "Seguro Daños", "Saldo"]:
         if col in df_format.columns:
             df_format[col] = df_format[col].apply(lambda x: f"L. {x:,.2f}")
 
@@ -480,10 +573,16 @@ if calcular:
     st.markdown("## 🧾 Tabla de Amortización")
     
     if mostrar_tabla:
-        # Show table with or without insurance column
+        # Show table with or without insurance columns
+        columns_to_drop = []
         if incluir_seguro == 'No' and "Seguro" in df_format.columns:
-            st.dataframe(df_format.drop(columns=["Seguro"]), use_container_width=True, height=400)
-            df_exportar = df_resultado.drop(columns=["Seguro"])
+            columns_to_drop.append("Seguro")
+        if incluir_seguro_danos == 'No' and "Seguro Daños" in df_format.columns:
+            columns_to_drop.append("Seguro Daños")
+            
+        if columns_to_drop:
+            st.dataframe(df_format.drop(columns=columns_to_drop), use_container_width=True, height=400)
+            df_exportar = df_resultado.drop(columns=columns_to_drop)
         else:
             st.dataframe(df_format, use_container_width=True, height=400)
             df_exportar = df_resultado
