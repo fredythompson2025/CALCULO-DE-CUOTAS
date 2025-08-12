@@ -350,11 +350,11 @@ with st.form("formulario"):
         st.markdown("**💰 Información del Monto**")
         # Loan amount input with formatting
         default_monto = st.session_state.get("monto_str", "10,000.00")
-        monto_str = st.text_input("Monto del préstamo (Lps.)", value=default_monto)
+        monto_str = st.text_input("Monto del préstamo (Lempiras)", value=default_monto)
 
         # Validate and parse loan amount
         try:
-            monto = float(monto_str.replace(",", "").replace("Lps.", "").strip())
+            monto = float(monto_str.replace(",", "").replace("Lempiras", "").replace("L.", "").replace("Lps.", "").strip())
             st.session_state["monto_str"] = f"{monto:,.2f}"
         except ValueError:
             st.error("❌ Ingrese un monto válido.")
@@ -381,7 +381,7 @@ with st.form("formulario"):
         # Insurance options
         incluir_seguro = st.selectbox("🛡️ ¿Incluir seguro Prestamo?", ['No', 'Sí'])
         if incluir_seguro == 'Sí':
-            porcentaje_seguro = st.number_input("📌 % Seguro por cada Lps. 1,000", value=0.50, step=0.01, format="%.2f")
+            porcentaje_seguro = st.number_input("📌 % Seguro por cada L. 1,000", value=0.50, step=0.01, format="%.2f")
         else:
             porcentaje_seguro = 0.0
         st.markdown('</div>', unsafe_allow_html=True)
@@ -411,7 +411,7 @@ if calcular:
         <div class='loan-info'>
             <h4>📋 Información del Préstamo</h4>
             <div style='display: flex; justify-content: space-between; flex-wrap: wrap;'>
-                <div><strong>💰 Monto:</strong> Lps. {monto:,.2f}</div>
+                <div><strong>💰 Monto:</strong> L. {monto:,.2f}</div>
                 <div><strong>📈 Tasa Anual:</strong> {tasa:.2f}%</div>
                 <div><strong>📅 Plazo:</strong> {plazo} meses</div>
             </div>
@@ -430,7 +430,7 @@ if calcular:
         st.markdown(f"""
             <div class='result-box'>
                 <h3>💵 Cuota a Pagar</h3>
-                <div class='result-amount'>Lps. {cuota_final:,.2f}</div>
+                <div class='result-amount'>L. {cuota_final:,.2f}</div>
                 <p>Pago único al vencimiento</p>
             </div>
         """, unsafe_allow_html=True)
@@ -447,7 +447,7 @@ if calcular:
             st.markdown(f"""
                 <div class='result-box'>
                     <h4>💵 Cuota a Pagar</h4>
-                    <div class='result-amount'>Lps. {primera_cuota:,.2f}</div>
+                    <div class='result-amount'>L. {primera_cuota:,.2f}</div>
                     <p>{tipo_cuota.lower()}</p>
                 </div>
             """, unsafe_allow_html=True)
@@ -456,7 +456,7 @@ if calcular:
             st.markdown(f"""
                 <div class='result-box' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);'>
                     <h4>📊 Total a Pagar</h4>
-                    <div class='result-amount'>Lps. {total_pago:,.2f}</div>
+                    <div class='result-amount'>L. {total_pago:,.2f}</div>
                     <p>En {total_cuotas} cuotas</p>
                 </div>
             """, unsafe_allow_html=True)
@@ -465,7 +465,7 @@ if calcular:
             st.markdown(f"""
                 <div class='result-box' style='background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);'>
                     <h4>📈 Total Intereses</h4>
-                    <div class='result-amount'>Lps. {total_intereses:,.2f}</div>
+                    <div class='result-amount'>L. {total_intereses:,.2f}</div>
                     <p>Durante el préstamo</p>
                 </div>
             """, unsafe_allow_html=True)
@@ -474,7 +474,7 @@ if calcular:
     df_format = df_resultado.copy()
     for col in ["Cuota", "Interés", "Abono", "Seguro", "Saldo"]:
         if col in df_format.columns:
-            df_format[col] = df_format[col].apply(lambda x: f"Lps. {x:,.2f}")
+            df_format[col] = df_format[col].apply(lambda x: f"L. {x:,.2f}")
 
     st.markdown("---")
     st.markdown("## 🧾 Tabla de Amortización")
