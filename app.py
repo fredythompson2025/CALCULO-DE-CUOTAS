@@ -290,9 +290,9 @@ if calcular:
         cuota_final = df_resultado["Cuota"].iloc[0]
         st.info(f"💵 **Cuota a pagar:** Lps. {cuota_final:,.2f}")
     else:
-        # Multiple payments - show average
-        cuota_promedio = df_resultado["Cuota"].mean()
-        st.info(f"💵 **Cuota promedio:** Lps. {cuota_promedio:,.2f}")
+        # Multiple payments - show first payment amount
+        primera_cuota = df_resultado["Cuota"].iloc[0]
+        st.info(f"💵 **Cuota a pagar:** Lps. {primera_cuota:,.2f}")
 
     # Format DataFrame for display
     df_format = df_resultado.copy()
