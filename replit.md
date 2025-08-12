@@ -5,6 +5,7 @@ This is a Spanish-language loan amortization calculator built with Streamlit. Th
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+UI/UX preferences: Modern design with gradients, organized form sections, conditional field display based on selections.
 
 # System Architecture
 
@@ -17,7 +18,10 @@ Preferred communication style: Simple, everyday language.
 ## Core Calculation Engine
 - **Payment Frequencies**: Supports 10 different payment frequencies from daily to annual, plus "at maturity" option
 - **Payment Types**: Two calculation methods - level payments (Nivelada) and declining balance (Saldos Insolutos)
-- **Insurance Integration**: Optional insurance calculation based on percentage per thousand
+- **Insurance Integration**: 
+  - Loan insurance: Optional calculation based on percentage per thousand of remaining balance
+  - Damage insurance: Separate calculation using (amount_to_insure / 1000) × percentage formula, with 15% tax and 5% firefighter fees plus L.50 paperwork fee
+- **Insurance Timing**: Loan insurance stops in final year, damage insurance stops in final year
 - **Data Structure**: Uses pandas DataFrames for structured amortization schedule storage
 
 ## Report Generation
