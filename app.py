@@ -45,24 +45,100 @@ st.markdown("""
     .result-box {
         background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
         color: white;
-        padding: 1.5rem;
-        border-radius: 12px;
+        padding: 1rem;
+        border-radius: 15px;
         text-align: center;
-        margin: 1rem 0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin: 0.5rem 0;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    .result-box:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+    .result-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: left 0.5s;
+    }
+    .result-box:hover::before {
+        left: 100%;
     }
     .result-amount {
-        font-size: 2rem;
+        font-size: 1.7rem;
         font-weight: bold;
-        margin: 0.5rem 0;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        margin: 0.3rem 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        position: relative;
+        z-index: 1;
+    }
+    .result-box h4 {
+        margin: 0 0 0.5rem 0;
+        font-size: 0.9rem;
+        opacity: 0.95;
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+    }
+    .result-box p {
+        margin: 0.3rem 0 0 0;
+        font-size: 0.8rem;
+        opacity: 0.85;
+        position: relative;
+        z-index: 1;
     }
     .loan-info {
-        background: #f8f9ff;
-        padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 4px solid #667eea;
+        background: linear-gradient(135deg, #f8f9ff 0%, #e6f2ff 100%);
+        padding: 1.2rem;
+        border-radius: 15px;
+        border: 1px solid #e1e8ff;
         margin: 1rem 0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        position: relative;
+        overflow: hidden;
+    }
+    .loan-info::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    }
+    .loan-info h4 {
+        color: #2c3e50;
+        margin: 0 0 1rem 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .info-item {
+        background: rgba(255, 255, 255, 0.7);
+        padding: 0.8rem;
+        border-radius: 8px;
+        border: 1px solid rgba(102, 126, 234, 0.1);
+    }
+    .info-item strong {
+        color: #2c3e50;
+        display: block;
+        margin-bottom: 0.2rem;
+        font-size: 0.85rem;
     }
     .download-section {
         background: #f8f9fa;
@@ -110,6 +186,34 @@ st.markdown("""
         border-radius: 12px;
         margin-bottom: 1rem;
         border: 1px solid #e1e8ff;
+    }
+    .results-container {
+        margin: 1.5rem 0;
+    }
+    .results-title {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+    .results-title::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+    }
+    .compact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+        margin: 1.5rem 0;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -472,22 +576,41 @@ if calcular:
     df_resultado = calcular_cuotas_df(monto, tasa, plazo, frecuencia, tipo_cuota, incluir_seguro, porcentaje_seguro, incluir_seguro_danos, monto_asegurar, porcentaje_seguro_danos)
     
     # Enhanced results section
-    st.markdown("## 🎯 Resultados del Cálculo")
+    st.markdown("""
+        <div class='results-container'>
+            <div class='results-title'>🎯 Resultados del Cálculo</div>
+        </div>
+    """, unsafe_allow_html=True)
     
     # Loan information in styled box
     st.markdown(f"""
         <div class='loan-info'>
             <h4>📋 Información del Préstamo</h4>
-            <div style='display: flex; justify-content: space-between; flex-wrap: wrap;'>
-                <div><strong>💰 Monto:</strong> L. {monto:,.2f}</div>
-                <div><strong>📈 Tasa Anual:</strong> {tasa:.2f}%</div>
-                <div><strong>📅 Plazo:</strong> {plazo} meses</div>
-            </div>
-            <div style='display: flex; justify-content: space-between; flex-wrap: wrap; margin-top: 1rem;'>
-                <div><strong>📆 Frecuencia:</strong> {frecuencia}</div>
-                <div><strong>🔁 Tipo:</strong> {tipo_cuota}</div>
-                <div><strong>🛡️ Seguro:</strong> {incluir_seguro}</div>
-                <div><strong>🏠 Seguro Daños:</strong> {incluir_seguro_danos}</div>
+            <div class='info-grid'>
+                <div class='info-item'>
+                    <strong>💰 Monto del Préstamo</strong>
+                    L. {monto:,.2f}
+                </div>
+                <div class='info-item'>
+                    <strong>📈 Tasa de Interés</strong>
+                    {tasa:.2f}% anual
+                </div>
+                <div class='info-item'>
+                    <strong>📅 Plazo</strong>
+                    {plazo} meses
+                </div>
+                <div class='info-item'>
+                    <strong>📆 Frecuencia de Pago</strong>
+                    {frecuencia}
+                </div>
+                <div class='info-item'>
+                    <strong>🔁 Tipo de Cuota</strong>
+                    {tipo_cuota}
+                </div>
+                <div class='info-item'>
+                    <strong>🛡️ Seguros</strong>
+                    Préstamo: {incluir_seguro} | Daños: {incluir_seguro_danos}
+                </div>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -510,34 +633,25 @@ if calcular:
         total_pago = df_resultado["Cuota"].sum()
         total_intereses = df_resultado["Interés"].sum()
         
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.markdown(f"""
+        st.markdown(f"""
+            <div class='compact-grid'>
                 <div class='result-box'>
                     <h4>💵 Cuota a Pagar</h4>
                     <div class='result-amount'>L. {primera_cuota:,.2f}</div>
                     <p>{tipo_cuota.lower()}</p>
                 </div>
-            """, unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown(f"""
                 <div class='result-box' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);'>
                     <h4>📊 Total a Pagar</h4>
                     <div class='result-amount'>L. {total_pago:,.2f}</div>
                     <p>En {total_cuotas} cuotas</p>
                 </div>
-            """, unsafe_allow_html=True)
-        
-        with col3:
-            st.markdown(f"""
                 <div class='result-box' style='background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);'>
                     <h4>📈 Total Intereses</h4>
                     <div class='result-amount'>L. {total_intereses:,.2f}</div>
                     <p>Durante el préstamo</p>
                 </div>
-            """, unsafe_allow_html=True)
+            </div>
+        """, unsafe_allow_html=True)
 
     # Format DataFrame for display
     df_format = df_resultado.copy()
