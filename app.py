@@ -245,6 +245,10 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
 
     # Calculate number of payments that include insurance
     cuotas_con_seguro = n_pagos - pagos_por_año
+    
+    # Calculate number of payments that include damage insurance (not last year)
+    cuotas_con_seguro_danos = n_pagos - pagos_por_año if pagos_por_año > 0 else 1
+    
     saldo = monto
     datos = []
 
@@ -259,7 +263,7 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
             
             # Apply insurance for specified number of payments
             seguro_aplicado = seguro_unitario if incluir_seguro == 'Sí' and i <= cuotas_con_seguro else 0
-            seguro_danos_aplicado = seguro_danos_por_pago if incluir_seguro_danos == 'Sí' else 0
+            seguro_danos_aplicado = seguro_danos_por_pago if incluir_seguro_danos == 'Sí' and i <= cuotas_con_seguro_danos else 0
             cuota_total = cuota_base + seguro_aplicado + seguro_danos_aplicado
             
             datos.append({
@@ -277,7 +281,7 @@ def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, i
             
             # Apply insurance for specified number of payments
             seguro_aplicado = seguro_unitario if incluir_seguro == 'Sí' and i <= cuotas_con_seguro else 0
-            seguro_danos_aplicado = seguro_danos_por_pago if incluir_seguro_danos == 'Sí' else 0
+            seguro_danos_aplicado = seguro_danos_por_pago if incluir_seguro_danos == 'Sí' and i <= cuotas_con_seguro_danos else 0
             cuota_total = cuota_base + seguro_aplicado + seguro_danos_aplicado
             
             datos.append({
