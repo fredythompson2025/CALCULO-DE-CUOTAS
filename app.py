@@ -431,18 +431,24 @@ with st.form("formulario"):
         # Payment type selection
         tipo_cuota = st.selectbox("🔁 Tipo de cuota", ['Nivelada', 'Saldos Insolutos'])
         
-        # Insurance options
-        incluir_seguro = st.selectbox("🛡️ ¿Incluir seguro Prestamo?", ['No', 'Sí'])
+        # Insurance options section
+        st.markdown("**🛡️ Opciones de Seguros**")
+        
+        # Seguro de préstamo
+        incluir_seguro = st.selectbox("Seguro de Préstamo", ['No', 'Sí'])
         if incluir_seguro == 'Sí':
             porcentaje_seguro = st.number_input("📌 % Seguro por cada L. 1,000", value=0.50, step=0.01, format="%.2f")
         else:
             porcentaje_seguro = 0.0
             
         # Seguro de daños
-        incluir_seguro_danos = st.selectbox("🏠 ¿Incluir seguro de daños?", ['No', 'Sí'])
+        incluir_seguro_danos = st.selectbox("Seguro de Daños", ['No', 'Sí'])
         if incluir_seguro_danos == 'Sí':
-            monto_asegurar = st.number_input("💼 Monto a asegurar (Lempiras)", value=350000.00, step=1000.0, format="%.2f")
-            porcentaje_seguro_danos = st.number_input("📊 % por cada L. 1,000", value=3.5, step=0.1, format="%.1f")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                monto_asegurar = st.number_input("💼 Monto a asegurar", value=350000.00, step=1000.0, format="%.0f")
+            with col_b:
+                porcentaje_seguro_danos = st.number_input("📊 % por cada L. 1,000", value=3.5, step=0.1, format="%.1f")
         else:
             monto_asegurar = 0.0
             porcentaje_seguro_danos = 0.0
