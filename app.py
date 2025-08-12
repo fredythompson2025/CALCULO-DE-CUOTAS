@@ -9,16 +9,119 @@ from reportlab.lib.styles import getSampleStyleSheet
 import os
 
 # Configure the Streamlit page
-st.set_page_config(page_title="Cuotas de Préstamo", layout="centered")
+st.set_page_config(page_title="Cuotas de Préstamo", layout="wide")
 
-# Header with icon and title
+# Custom CSS for better styling
 st.markdown("""
-    <div style='text-align: center;'>
-        <img src='https://cdn-icons-png.flaticon.com/512/2910/2910768.png' width='80'/>
-        <h1 style='color: #003366;'>Cuotas de Préstamo</h1>
+    <style>
+    .main-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .main-title {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .subtitle {
+        color: #e0e6ff;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+    .form-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        border: 1px solid #e1e8ed;
+    }
+    .result-box {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        margin: 1rem 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .result-amount {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+    .loan-info {
+        background: #f8f9ff;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid #667eea;
+        margin: 1rem 0;
+    }
+    .download-section {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        margin-top: 2rem;
+        border: 2px dashed #dee2e6;
+    }
+    .download-button {
+        display: inline-block;
+        padding: 12px 24px;
+        margin: 0 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: transform 0.2s;
+    }
+    .download-button:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+        color: white;
+    }
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-weight: bold;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    }
+    .input-section {
+        background: #f8f9ff;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        border: 1px solid #e1e8ff;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Enhanced header with icon and title
+st.markdown("""
+    <div class='main-header'>
+        <img src='https://cdn-icons-png.flaticon.com/512/2910/2910768.png' width='100' style='margin-bottom: 1rem;'/>
+        <h1 class='main-title'>💰 Calculadora de Préstamos</h1>
+        <p class='subtitle'>Calcula tu tabla de amortización con diferentes frecuencias de pago</p>
     </div>
 """, unsafe_allow_html=True)
-st.markdown("##")
 
 def calcular_cuotas_df(monto, tasa_anual, plazo_meses, frecuencia, tipo_cuota, incluir_seguro, porcentaje_seguro):
     """
@@ -234,14 +337,20 @@ def generar_link_descarga_pdf(df):
 
 # -------------------- USER INTERFACE --------------------
 
-# Create form for loan parameters input
+# Create enhanced form for loan parameters input
+st.markdown('<div class="form-container">', unsafe_allow_html=True)
+
 with st.form("formulario"):
+    st.markdown("### 📝 Datos del Préstamo")
+    
     col1, col2 = st.columns(2)
 
     with col1:
+        st.markdown('<div class="input-section">', unsafe_allow_html=True)
+        st.markdown("**💰 Información del Monto**")
         # Loan amount input with formatting
         default_monto = st.session_state.get("monto_str", "10,000.00")
-        monto_str = st.text_input("💰 Monto del préstamo", value=default_monto)
+        monto_str = st.text_input("Monto del préstamo (Lps.)", value=default_monto)
 
         # Validate and parse loan amount
         try:
@@ -252,14 +361,17 @@ with st.form("formulario"):
             st.stop()
 
         # Interest rate and term inputs
-        tasa = st.number_input("📈 Tasa de interés anual (%)", value=12.0, step=0.1)
-        plazo = st.number_input("📅 Plazo (meses)", value=36, step=1)
+        tasa = st.number_input("📈 Tasa de interés anual (%)", value=12.0, step=0.1, format="%.2f")
+        plazo = st.number_input("📅 Plazo (meses)", value=36, step=1, min_value=1)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
+        st.markdown('<div class="input-section">', unsafe_allow_html=True)
+        st.markdown("**⚙️ Configuración de Pagos**")
         # Payment frequency selection
         frecuencia = st.selectbox(
             "📆 Frecuencia de pago",
-            ['Diario', 'Semanal', 'Quincenal', 'Mensual', 'Bimensual',
+            ['Mensual', 'Quincenal', 'Semanal', 'Diario', 'Bimensual',
              'Trimestral', 'Cuatrimestral', 'Semestral', 'Anual', 'Al vencimiento']
         )
         
@@ -268,31 +380,95 @@ with st.form("formulario"):
         
         # Insurance options
         incluir_seguro = st.selectbox("🛡️ ¿Incluir seguro Prestamo?", ['No', 'Sí'])
-        porcentaje_seguro = st.number_input("📌 % Seguro por cada Lps. 1,000", value=0.50, step=0.01)
-
-    # Option to show/hide amortization table
-    mostrar_tabla = st.checkbox("📋 Mostrar tabla de amortización", value=True)
+        if incluir_seguro == 'Sí':
+            porcentaje_seguro = st.number_input("📌 % Seguro por cada Lps. 1,000", value=0.50, step=0.01, format="%.2f")
+        else:
+            porcentaje_seguro = 0.0
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("---")
-    calcular = st.form_submit_button("🔍 Calcular cuotas")
+    
+    col_check, col_button = st.columns([3, 1])
+    with col_check:
+        # Option to show/hide amortization table
+        mostrar_tabla = st.checkbox("📋 Mostrar tabla de amortización completa", value=True)
+    
+    with col_button:
+        calcular = st.form_submit_button("🔍 Calcular Cuotas", use_container_width=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Process calculation when form is submitted
 if calcular:
-    st.subheader("📊 Resultados:")
-    st.markdown(f"**Monto del préstamo:** Lps. {monto:,.2f}  \n**Tasa anual:** {tasa:.2f}%  \n**Plazo:** {plazo} meses")
-
     # Calculate amortization schedule
     df_resultado = calcular_cuotas_df(monto, tasa, plazo, frecuencia, tipo_cuota, incluir_seguro, porcentaje_seguro)
+    
+    # Enhanced results section
+    st.markdown("## 🎯 Resultados del Cálculo")
+    
+    # Loan information in styled box
+    st.markdown(f"""
+        <div class='loan-info'>
+            <h4>📋 Información del Préstamo</h4>
+            <div style='display: flex; justify-content: space-between; flex-wrap: wrap;'>
+                <div><strong>💰 Monto:</strong> Lps. {monto:,.2f}</div>
+                <div><strong>📈 Tasa Anual:</strong> {tasa:.2f}%</div>
+                <div><strong>📅 Plazo:</strong> {plazo} meses</div>
+            </div>
+            <div style='display: flex; justify-content: space-between; flex-wrap: wrap; margin-top: 1rem;'>
+                <div><strong>📆 Frecuencia:</strong> {frecuencia}</div>
+                <div><strong>🔁 Tipo:</strong> {tipo_cuota}</div>
+                <div><strong>🛡️ Seguro:</strong> {incluir_seguro}</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
-    # Display payment information
+    # Display payment information in attractive box
     if len(df_resultado) == 1:
         # Single payment (at maturity)
         cuota_final = df_resultado["Cuota"].iloc[0]
-        st.info(f"💵 **Cuota a pagar:** Lps. {cuota_final:,.2f}")
+        st.markdown(f"""
+            <div class='result-box'>
+                <h3>💵 Cuota a Pagar</h3>
+                <div class='result-amount'>Lps. {cuota_final:,.2f}</div>
+                <p>Pago único al vencimiento</p>
+            </div>
+        """, unsafe_allow_html=True)
     else:
         # Multiple payments - show first payment amount
         primera_cuota = df_resultado["Cuota"].iloc[0]
-        st.info(f"💵 **Cuota a pagar:** Lps. {primera_cuota:,.2f}")
+        total_cuotas = len(df_resultado)
+        total_pago = df_resultado["Cuota"].sum()
+        total_intereses = df_resultado["Interés"].sum()
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown(f"""
+                <div class='result-box'>
+                    <h4>💵 Cuota a Pagar</h4>
+                    <div class='result-amount'>Lps. {primera_cuota:,.2f}</div>
+                    <p>{tipo_cuota.lower()}</p>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+                <div class='result-box' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);'>
+                    <h4>📊 Total a Pagar</h4>
+                    <div class='result-amount'>Lps. {total_pago:,.2f}</div>
+                    <p>En {total_cuotas} cuotas</p>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            st.markdown(f"""
+                <div class='result-box' style='background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);'>
+                    <h4>📈 Total Intereses</h4>
+                    <div class='result-amount'>Lps. {total_intereses:,.2f}</div>
+                    <p>Durante el préstamo</p>
+                </div>
+            """, unsafe_allow_html=True)
 
     # Format DataFrame for display
     df_format = df_resultado.copy()
@@ -300,25 +476,45 @@ if calcular:
         if col in df_format.columns:
             df_format[col] = df_format[col].apply(lambda x: f"Lps. {x:,.2f}")
 
-    st.subheader("🧾 Tabla de amortización:")
+    st.markdown("---")
+    st.markdown("## 🧾 Tabla de Amortización")
     
     if mostrar_tabla:
         # Show table with or without insurance column
         if incluir_seguro == 'No' and "Seguro" in df_format.columns:
-            st.dataframe(df_format.drop(columns=["Seguro"]), use_container_width=True)
+            st.dataframe(df_format.drop(columns=["Seguro"]), use_container_width=True, height=400)
             df_exportar = df_resultado.drop(columns=["Seguro"])
         else:
-            st.dataframe(df_format, use_container_width=True)
+            st.dataframe(df_format, use_container_width=True, height=400)
             df_exportar = df_resultado
 
-        # Download section
-        st.markdown("---")
-        st.markdown("### 📂 DESCARGA, creado por Fredy Thompson")
+        # Enhanced download section
+        st.markdown("""
+            <div class='download-section'>
+                <h3>📂 Descargar Tabla de Amortización</h3>
+                <p style='margin-bottom: 1.5rem; color: #666;'>Obtén tu tabla de amortización en formato Excel o PDF</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown(generar_link_descarga_excel(df_exportar), unsafe_allow_html=True)
+            excel_link = generar_link_descarga_excel(df_exportar)
+            # Style the download link with custom class
+            excel_link = excel_link.replace('<a href=', '<a class="download-button" href=')
+            st.markdown(f'<div style="text-align: center;">{excel_link}</div>', unsafe_allow_html=True)
+        
         with col2:
-            st.markdown(generar_link_descarga_pdf(df_exportar), unsafe_allow_html=True)
+            pdf_link = generar_link_descarga_pdf(df_exportar)
+            # Style the download link with custom class
+            pdf_link = pdf_link.replace('<a href=', '<a class="download-button" href=')
+            st.markdown(f'<div style="text-align: center;">{pdf_link}</div>', unsafe_allow_html=True)
+            
+        # Footer
+        st.markdown("""
+            <div style='text-align: center; margin-top: 2rem; padding: 1rem; color: #666; border-top: 1px solid #eee;'>
+                <p><strong>Creado por Fredy Thompson</strong> | Calculadora de Préstamos Profesional</p>
+            </div>
+        """, unsafe_allow_html=True)
     else:
-        st.info("📋 Tabla de amortización oculta.")
+        st.info("📋 Marque la casilla arriba para mostrar la tabla de amortización completa.")
